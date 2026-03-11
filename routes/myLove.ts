@@ -17,7 +17,7 @@ export function myLove(router: Router): void {
   router
     .get("/myLove/photoList", verifyToken, async (ctx): Promise<void> => { // 获取照片列表
       let sql: any = {};
-      const data: Document[] = await queryAll(sql, "photo");
+      const data: Document[] = await queryAll(sql, "photo"); 
       ctx.response.body = {
         "code": 200,
         "rows": data,
