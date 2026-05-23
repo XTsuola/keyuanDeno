@@ -7,6 +7,7 @@ import { xingta } from "./xingta.ts";
 import { myLove } from "./myLove.ts";
 import { mota } from "./mota.ts";
 import { chess } from "./chess.ts";
+import { yuanshen } from "./yuanshen.ts";
 
 const router = new Router();
 const list = [
@@ -18,9 +19,10 @@ const list = [
     mota,
     chess,
     myLove,
+    yuanshen,
 ];
 
-for(let i=0;i<list.length;i++) {
+for (let i = 0; i < list.length; i++) {
     list[i](router);
 }
 
