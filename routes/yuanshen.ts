@@ -34,12 +34,12 @@ export function yuanshen(router: Router): void {
         type: "json",
       }).value;
       const lastInfo: Document[] = await findLast("yuanshenHero");
-      let id: number = 0;
+      let id: any = 0;
       if (lastInfo.length) {
         id = lastInfo[0].id;
       }
       const sql = {
-        id: id + 1,
+        id: parseInt(id) + 1,
         name: params.name,
         genter: params.genter,
         figure: params.figure,
@@ -74,7 +74,9 @@ export function yuanshen(router: Router): void {
         birthday: params.birthday,
         remark: params.remark,
       };
+      console.log(param2)
       const data = await update(param1, param2, "yuanshenHero");
+      console.log(data)
       ctx.response.body = {
         "code": 200,
         "rows": data,
