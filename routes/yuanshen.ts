@@ -16,9 +16,17 @@ export function yuanshen(router: Router): void {
   router
     .get("/yuanshen/getHeroList", verifyToken, async (ctx): Promise<void> => { // 获取英雄列表
       const params: any = helpers.getQuery(ctx);
-      const total: number = await queryCount({}, "yuanshenHero");
+      let sql: any = {};
+      for (let key in params) {
+        if (key == "genter" || key == "star") {
+          sql = { ...sql, [key]: parseInt(params[key]) };
+        } else {
+          sql = { ...sql, [key]: { "$regex": params[key] } };
+        }
+      }
+      const total: number = await queryCount(sql, "yuanshenHero");
       const data: Document[] = await queryAll(
-        {},
+        sql,
         "yuanshenHero",
         parseInt(params.pageSize),
         parseInt(params.pageNo),
@@ -74,9 +82,9 @@ export function yuanshen(router: Router): void {
         birthday: params.birthday,
         remark: params.remark,
       };
-      console.log(param2)
+      console.log(param2);
       const data = await update(param1, param2, "yuanshenHero");
-      console.log(data)
+      console.log(data);
       ctx.response.body = {
         "code": 200,
         "rows": data,
