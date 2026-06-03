@@ -18,7 +18,7 @@ export function yuanshen(router: Router): void {
       const params: any = helpers.getQuery(ctx);
       let sql: any = {};
       for (let key in params) {
-        if (key == "genter" || key == "star") {
+        if (key == "gender" || key == "star") {
           sql = { ...sql, [key]: parseInt(params[key]) };
         } else {
           sql = { ...sql, [key]: { "$regex": params[key] } };
@@ -49,7 +49,7 @@ export function yuanshen(router: Router): void {
       const sql = {
         id: parseInt(id) + 1,
         name: params.name,
-        genter: params.genter,
+        gender: params.gender,
         figure: params.figure,
         star: params.star,
         country: params.country,
@@ -72,7 +72,7 @@ export function yuanshen(router: Router): void {
       const param1 = { id: JSON.parse(params.id) };
       const param2 = {
         name: params.name,
-        genter: params.genter,
+        gender: params.gender,
         figure: params.figure,
         star: params.star,
         country: params.country,
@@ -97,6 +97,102 @@ export function yuanshen(router: Router): void {
         const params: any = helpers.getQuery(ctx);
         const sql = { id: JSON.parse(params.id) };
         const data: number = await deleteData(sql, "yuanshenHero");
+        ctx.response.body = {
+          "code": 200,
+          "rows": data,
+          "msg": "删除成功",
+        };
+      },
+    ).get(
+      "/yuanshen/getWeaponList",
+      verifyToken,
+      async (ctx): Promise<void> => { // 获取武器列表
+        const params: any = helpers.getQuery(ctx);
+        let sql: any = {};
+        for (let key in params) {
+          if (key == "star") {
+            sql = { ...sql, [key]: parseInt(params[key]) };
+          } else if (key == "tag[]") {
+          } else {
+            sql = { ...sql, [key]: { "$regex": params[key] } };
+          }
+        }
+        const tag = ctx.request.url.searchParams.getAll("tag[]");
+        if (tag.length > 0) sql = { ...sql, tag: { $all: tag } };
+        const total: number = await queryCount(sql, "yuanshenWeapon");
+        const data: Document[] = await queryAll(
+          sql,
+          "yuanshenWeapon",
+          parseInt(params.pageSize),
+          parseInt(params.pageNo),
+        );
+        ctx.response.body = {
+          "code": 200,
+          "rows": data,
+          "total": total,
+          "msg": "查询成功",
+        };
+      },
+    ).post("/yuanshen/addWeapon", verifyToken, async (ctx): Promise<void> => { // 新增武器信息
+      const params: any = await ctx.request.body({
+        type: "json",
+      }).value;
+      const lastInfo: Document[] = await findLast("yuanshenWeapon");
+      let id: any = 0;
+      if (lastInfo.length) {
+        id = lastInfo[0].id;
+      }
+      const sql = {
+        id: parseInt(id) + 1,
+        name: params.name,
+        star: params.star,
+        weaponType: params.weaponType,
+        attack: params.attack,
+        buff: params.buff,
+        tag: params.tag,
+        info: params.info,
+        remark: params.remark,
+      };
+      const data: any = await add(sql, "yuanshenWeapon");
+      ctx.response.body = {
+        "code": 200,
+        "rows": data,
+        "msg": "新增成功",
+      };
+    }).post(
+      "/yuanshen/updateWeapon",
+      verifyToken,
+      async (ctx): Promise<void> => { // 修改武器信息
+        const params: any = await ctx.request.body({
+          type: "json",
+        }).value;
+        const param1 = { id: JSON.parse(params.id) };
+        const param2 = {
+          name: params.name,
+          star: params.star,
+          weaponType: params.weaponType,
+          attack: params.attack,
+          buff: params.buff,
+          tag: params.tag,
+          info: params.info,
+          remark: params.remark,
+        };
+        console.log(param2);
+        const data = await update(param1, param2, "yuanshenWeapon");
+        console.log(data);
+        ctx.response.body = {
+          "code": 200,
+          "rows": data,
+          "msg": "修改成功",
+        };
+      },
+    ).delete(
+      "/yuanshen/deleteWeapon",
+      verifyToken,
+      async (ctx): Promise<void> => { // 删除武器信息
+        const params: any = helpers.getQuery(ctx);
+        const sql = { id: JSON.parse(params.id) };
+        const data: number = await deleteData(sql, "yuanshenWeapon");
         ctx.response.body = {
           "code": 200,
           "rows": data,
