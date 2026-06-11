@@ -30,6 +30,7 @@ export function yuanshen(router: Router): void {
         "yuanshenHero",
         parseInt(params.pageSize),
         parseInt(params.pageNo),
+        -1,
       );
       ctx.response.body = {
         "code": 200,
@@ -82,9 +83,7 @@ export function yuanshen(router: Router): void {
         birthday: params.birthday,
         remark: params.remark,
       };
-      console.log(param2);
       const data = await update(param1, param2, "yuanshenHero");
-      console.log(data);
       ctx.response.body = {
         "code": 200,
         "rows": data,
@@ -125,6 +124,7 @@ export function yuanshen(router: Router): void {
           "yuanshenWeapon",
           parseInt(params.pageSize),
           parseInt(params.pageNo),
+          -1,
         );
         ctx.response.body = {
           "code": 200,
@@ -177,9 +177,7 @@ export function yuanshen(router: Router): void {
           info: params.info,
           remark: params.remark,
         };
-        console.log(param2);
         const data = await update(param1, param2, "yuanshenWeapon");
-        console.log(data);
         ctx.response.body = {
           "code": 200,
           "rows": data,

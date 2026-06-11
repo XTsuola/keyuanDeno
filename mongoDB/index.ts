@@ -5,9 +5,9 @@ import {
 } from "https://deno.land/x/mongo@v0.29.3/mod.ts";
 
 function deletePage(obj: any) {
-  delete obj.pageSize
-  delete obj.pageNo
-  return obj
+  delete obj.pageSize;
+  delete obj.pageNo;
+  return obj;
 }
 
 const client = new MongoClient();
@@ -29,7 +29,9 @@ export async function queryAll2(
   params: any,
   tableName: string,
 ): Promise<Document[]> {
-  const result: Document[] = await db.collection(tableName).find(params).sort({life:-1})
+  const result: Document[] = await db.collection(tableName).find(params).sort({
+    life: -1,
+  })
     .toArray();
   return result;
 }
@@ -40,17 +42,34 @@ export async function queryAll(
   tableName: string,
   pageSize?: number,
   pageNo?: number,
+  sort?: number,
 ): Promise<Document[]> {
   let data = deletePage(params);
   if (pageSize && pageNo) {
-    const result: Document[] = await db.collection(tableName).find(data).limit(
-      pageSize,
-    ).skip((pageNo - 1) * pageSize).toArray();
-    return result;
+    if (sort == -1) {
+      const result: Document[] = await db.collection(tableName).find(data)
+        .limit(
+          pageSize,
+        ).skip((pageNo - 1) * pageSize).sort({ id: -1 }).toArray();
+      return result;
+    } else {
+      const result: Document[] = await db.collection(tableName).find(data)
+        .limit(
+          pageSize,
+        ).skip((pageNo - 1) * pageSize).toArray();
+      return result;
+    }
   } else {
-    const result: Document[] = await db.collection(tableName).find(data)
-      .toArray();
-    return result;
+    if (sort == -1) {
+      const result: Document[] = await db.collection(tableName).find(data).sort(
+        { id: -1 },
+      ).toArray();
+      return result;
+    } else {
+      const result: Document[] = await db.collection(tableName).find(data)
+        .toArray();
+      return result;
+    }
   }
 }
 
