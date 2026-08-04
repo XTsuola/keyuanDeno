@@ -1,128 +1,104 @@
-// deno-lint-ignore-file
 import {
   Document,
   MongoClient,
 } from "https://deno.land/x/mongo@v0.29.3/mod.ts";
 
-function deletePage(obj: any) {
-  delete obj.pageSize;
-  delete obj.pageNo;
-  return obj;
+type Filter = Record<string, unknown>;
+
+/** Strip pagination fields without mutating the caller's object. */
+function withoutPage(params: Filter): Filter {
+  const { pageSize: _pageSize, pageNo: _pageNo, ...filter } = params;
+  return filter;
 }
 
 const client = new MongoClient();
-await client.connect("mongodb://127.0.0.1:27017");
-const db = client.database("keyuan");
+await client.connect(
+  Deno.env.get("MONGODB_URI") ?? "mongodb://127.0.0.1:27017",
+);
+const db = client.database(Deno.env.get("MONGODB_DB") ?? "keyuan");
 
-// 查询总数
+/** 查询总数 */
 export async function queryCount(
-  params: any,
+  params: Filter,
   tableName: string,
 ): Promise<number> {
-  let data = deletePage(params);
-  const result = await db.collection(tableName).count(data);
-  return result;
+  return await db.collection(tableName).count(withoutPage(params));
 }
 
-// 查询所有
+/** 按 life 降序查询所有 */
 export async function queryAll2(
-  params: any,
+  params: Filter,
   tableName: string,
 ): Promise<Document[]> {
-  const result: Document[] = await db.collection(tableName).find(params).sort({
-    life: -1,
-  })
+  return await db.collection(tableName).find(params).sort({ life: -1 })
     .toArray();
-  return result;
 }
 
-// 查询所有
+/** 查询列表（可选分页、按 id 降序） */
 export async function queryAll(
-  params: any,
+  params: Filter,
   tableName: string,
   pageSize?: number,
   pageNo?: number,
   sort?: number,
 ): Promise<Document[]> {
-  let data = deletePage(params);
-  if (pageSize && pageNo) {
-    if (sort == -1) {
-      const result: Document[] = await db.collection(tableName).find(data)
-        .limit(
-          pageSize,
-        ).skip((pageNo - 1) * pageSize).sort({ id: -1 }).toArray();
-      return result;
-    } else {
-      const result: Document[] = await db.collection(tableName).find(data)
-        .limit(
-          pageSize,
-        ).skip((pageNo - 1) * pageSize).toArray();
-      return result;
-    }
-  } else {
-    if (sort == -1) {
-      const result: Document[] = await db.collection(tableName).find(data).sort(
-        { id: -1 },
-      ).toArray();
-      return result;
-    } else {
-      const result: Document[] = await db.collection(tableName).find(data)
-        .toArray();
-      return result;
-    }
+  const filter = withoutPage(params);
+  let cursor = db.collection(tableName).find(filter);
+
+  if (sort === -1) {
+    cursor = cursor.sort({ id: -1 });
   }
+  if (pageSize && pageNo) {
+    cursor = cursor.skip((pageNo - 1) * pageSize).limit(pageSize);
+  }
+
+  return await cursor.toArray();
 }
 
-// 查询单条信息
+/** 查询单条 */
 export async function queryOne(
-  data: any,
+  data: Filter,
   tableName: string,
 ): Promise<Document | undefined> {
-  const result: Document | undefined = await db.collection(tableName).findOne(
-    data,
-  );
-  return result;
+  return await db.collection(tableName).findOne(data);
 }
 
-// 新增数据
+/** 新增 */
 export async function add(
-  data: any,
+  data: Filter,
   tableName: string,
-): Promise<any> {
-  const result: any = await db.collection(tableName).insertOne(data);
-  return result;
+): Promise<unknown> {
+  return await db.collection(tableName).insertOne(data);
 }
 
-// 修改数据
-export async function update(data1: any, data2: any, tableName: string) {
-  const result = await db.collection(tableName).updateOne(data1, {
-    $set: data2,
-  });
-  return result;
+/** 修改单条 */
+export async function update(
+  filter: Filter,
+  data: Filter,
+  tableName: string,
+) {
+  return await db.collection(tableName).updateOne(filter, { $set: data });
 }
 
-// 查询最后一条数据
+/** 查询最后一条 */
 export async function findLast(tableName: string): Promise<Document[]> {
-  const result: Document[] = await db.collection(tableName).find({}).sort({
-    _id: -1,
-  })
-    .limit(1).toArray();
-  return result;
+  return await db.collection(tableName).find({}).sort({ _id: -1 }).limit(1)
+    .toArray();
 }
 
-// 删除数据
+/** 删除单条 */
 export async function deleteData(
-  data: any,
+  data: Filter,
   tableName: string,
 ): Promise<number> {
-  const result: number = await db.collection(tableName).deleteOne(data);
-  return result;
+  return await db.collection(tableName).deleteOne(data);
 }
 
-// 修改所有数据
-export async function updateAll(data1: any, data2: any, tableName: string) {
-  const result = await db.collection(tableName).updateMany(data1, {
-    $set: data2,
-  });
-  return result;
+/** 批量修改 */
+export async function updateAll(
+  filter: Filter,
+  data: Filter,
+  tableName: string,
+) {
+  return await db.collection(tableName).updateMany(filter, { $set: data });
 }

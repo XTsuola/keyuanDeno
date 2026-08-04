@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window", "deno.unstable"],
+    "strict": true
+  },
+  "tasks": {
+    "start": "deno run --inspect --allow-all --unstable-net --unstable-ffi ./main.ts",
+    "check": "deno check main.ts"
+  },
+  "imports": {
+    "oak": "https://deno.land/x/oak@v10.2.1/mod.ts",
+    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts"
+  }
+}
