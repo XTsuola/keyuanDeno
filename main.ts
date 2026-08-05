@@ -4,7 +4,11 @@ import router from "./routes/index.ts";
 
 const app = new Application();
 
-app.use(oakCors());
+app.use(oakCors({
+  origin: true,
+  allowedHeaders: ["Content-Type", "token", "Authorization"],
+  exposedHeaders: ["token"],
+}));
 app.use(router.routes());
 app.use(router.allowedMethods());
 app.use(async (context, next: () => Promise<unknown>): Promise<void> => {
